@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#080a0a">
+  <title>СЛОВОБОЙ — Последний словарь</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css?v=45">
+</head>
+<body>
+  <div class="app">
+    <div class="ambient"></div>
+    <main class="game-shell">
+      <div class="game-stage" id="gameStage" tabindex="0">
+        <canvas id="gameCanvas" width="480" height="270" aria-label="Поле боя СЛОВОБОЙ"></canvas>
+        <div class="crt" aria-hidden="true"></div>
+
+        <div class="hud" id="hud" aria-hidden="true">
+          <div class="hud-top">
+            <div class="hud-block hud-left">
+              <div class="stat-line"><span class="stat-label">ВОЛНА</span><span class="stat-value" id="waveValue">1/30</span></div>
+              <div class="stat-line wave-mod-line"><span class="stat-label">ПОМЕТКА</span><span class="stat-value wave-mod-value" id="waveModTag">НЕТ</span></div>
+              <div class="stat-line"><span class="stat-label">СЧЁТ</span><span class="stat-value" id="scoreValue">0</span></div>
+            </div>
+
+            <div class="hud-block hud-center">
+              <div class="hp-head">
+                <span class="hp-name">СЛОВАРЬ</span>
+                <span class="hp-numbers" id="hpLabel">100 / 100</span>
+                <span class="shield-label" id="shieldLabel"></span>
+              </div>
+              <div class="hp-track">
+                <div class="hp-fill" id="hpFill"></div>
+                <div class="hp-shine"></div>
+              </div>
+            </div>
+
+            <div class="hud-block hud-right">
+              <div class="stat-line"><span class="stat-label">СЕРИЯ</span><span class="stat-value combo-value" id="comboValue">0</span></div>
+              <div class="stat-line"><span class="stat-label">ЖЕТОНЫ</span><span class="stat-value" id="tokensValue">1</span></div>
+            </div>
+          </div>
+
+          <div class="boss-bar" id="bossBar">
+            <div class="boss-top">
+              <span class="boss-tag">БОСС</span>
+              <span class="boss-name" id="bossName">ГЛАШАТАЙ</span>
+              <span class="boss-pips" id="bossPips"></span>
+            </div>
+            <div class="boss-phrase" id="bossPhrase"></div>
+          </div>
+
+          <div class="hud-bottom">
+            <div class="typing-panel">
+              <div class="typing-head">
+                <span id="targetName">ЦЕЛЬ НЕ ВЫБРАНА</span>
+                <span class="typing-hint" id="targetHint">TAB — СМЕНИТЬ ЦЕЛЬ</span>
+              </div>
+              <div class="target-word" id="targetWord">—</div>
+              <div class="buffer-row">
+                <span class="buffer-label">ВВЕДЕНО</span>
+                <span class="buffer-text" id="bufferText">_</span>
+              </div>
+            </div>
+            <div class="hud-mini">
+              <div class="mini-stat"><span class="stat-label">УБИЙСТВА</span><span class="stat-value" id="killsValue">0</span></div>
+              <div class="mini-stat"><span class="stat-label">НА ПОЛЕ</span><span class="stat-value" id="enemiesValue">0</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="wave-banner" id="waveBanner"></div>
+        <div class="toast" id="toast"></div>
+        <div class="flash" id="flash"></div>
+
+        <section class="screen menu-screen active" id="menuScreen">
+          <div class="menu-inner">
+            <div class="eyebrow">ПОСЛЕДНИЙ СЛОВАРЬ</div>
+            <h1 class="game-title"><span>СЛОВО</span><span class="title-accent">БОЙ</span></h1>
+            <p class="tagline">Немые идут к последней книге.<br>Назови их имена — и они исчезнут.</p>
+
+            <div class="difficulty-picker" id="difficultyPicker" role="radiogroup" aria-label="Сложность">
+              <button class="diff-card" data-diff="easy" role="radio" aria-checked="false">
+                <span class="diff-name">ЛЕГКО</span>
+                <span class="diff-desc">130 HP · для спокойной игры</span>
+              </button>
+              <button class="diff-card selected" data-diff="normal" role="radio" aria-checked="true">
+                <span class="diff-name">СТАНДАРТ</span>
+                <span class="diff-desc">100 HP · обычная сложность</span>
+              </button>
+              <button class="diff-card" data-diff="hard" role="radio" aria-checked="false">
+                <span class="diff-name">СЛОЖНО</span>
+                <span class="diff-desc">80 HP · строгий ввод</span>
+              </button>
+            </div>
+
+            <button class="btn btn-primary btn-start" id="startBtn">НАЧАТЬ ЗАБЕГ</button>
+
+            <div class="menu-links">
+              <button class="btn btn-ghost" id="helpBtn">КАК ИГРАТЬ</button>
+              <button class="btn btn-ghost" id="menuSoundBtn">ЗВУК: ВКЛ</button>
+              <button class="btn btn-ghost" id="menuFullscreenBtn">НА ВЕСЬ ЭКРАН</button>
+            </div>
+
+            <div class="best-line">ЛУЧШИЙ СЧЁТ <span id="bestScore">0</span></div>
+            <div class="menu-note">30 волн · 6 боссов · 35 улучшений</div>
+          </div>
+        </section>
+
+        <section class="screen help-screen" id="helpScreen">
+          <div class="help-inner">
+            <div class="screen-head">
+              <div>
+                <div class="eyebrow">ПРАВИЛА</div>
+                <h2>КАК ИГРАТЬ</h2>
+              </div>
+              <button class="btn btn-ghost btn-close" id="helpCloseBtn">ЗАКРЫТЬ</button>
+            </div>
+
+            <div class="help-grid">
+              <article class="help-card">
+                <h3>1. ВВОДИ СЛОВА</h3>
+                <p>Над каждым немым висит слово. Начни печатать — игра сама выберет подходящую цель. Полностью введённое слово уничтожает врага.</p>
+              </article>
+              <article class="help-card">
+                <h3>2. СЛЕДИ ЗА БАЗОЙ</h3>
+                <p>В центре — последний Словарь. Враги, дошедшие до него, начинают бить. Убивай в первую очередь тех, кто уже атакует.</p>
+              </article>
+              <article class="help-card">
+                <h3>3. ДЕРЖИ СЕРИЮ</h3>
+                <p>Убийства без ошибок растят серию и множитель очков. Ошибка не ранит базу, но сбрасывает темп.</p>
+              </article>
+              <article class="help-card">
+                <h3>4. ВЫБИРАЙ УЛУЧШЕНИЯ</h3>
+                <p>После волн 1–10 показывают три карты. Дальше — после чётных волн и после боссов. Возьми одну карту: она усилит базу или изменит бой. Чем выше редкость, тем сильнее эффект.</p>
+              </article>
+              <article class="help-card">
+                <h3>5. ПОМНИ О БОССАХ</h3>
+                <p>На 5, 10, 15, 20, 25 и 30-й волнах приходят боссы. Их фраза — одно предложение: введи его целиком, разделяя слова пробелом. Пока босс жив, его предложение в приоритете.</p>
+              </article>
+              <article class="help-card">
+                <h3>6. ЧИТАЙ ПОМЕТКИ</h3>
+                <p>На некоторых волнах действует особая пометка. Она меняет правила волны: ускоряет врагов, добавляет элиту или уменьшает лечение. Пометка всегда видна вверху экрана.</p>
+              </article>
+              <article class="help-card">
+                <h3>7. СМЕНА ЦЕЛИ</h3>
+                <p>TAB переключает цель среди подходящих врагов. Клик по врагу выбирает его вручную. Клик по пустому месту снимает выбор.</p>
+              </article>
+            </div>
+
+            <div class="controls">
+              <div class="control"><span class="kbd">БУКВЫ</span><span>ввод слова</span></div>
+              <div class="control"><span class="kbd">ПРОБЕЛ</span><span>между словами босса</span></div>
+              <div class="control"><span class="kbd">BACKSPACE</span><span>удалить букву</span></div>
+              <div class="control"><span class="kbd">TAB</span><span>сменить цель</span></div>
+              <div class="control"><span class="kbd">ESC</span><span>пауза</span></div>
+              <div class="control"><span class="kbd">1–6</span><span>выбрать улучшение</span></div>
+              <div class="control"><span class="kbd">R / S</span><span>обновить / пропустить</span></div>
+            </div>
+
+            <div class="help-footer">
+              <p>На сложности «Легко» и «Стандарт» неверная буква просто не вводится. На «Сложно» опечатку нужно стирать Backspace.</p>
+              <p>Проклятые карты сильны, но у них есть цена. Иногда лучше пропустить карту и получить 15 HP.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen upgrade-screen" id="upgradeScreen">
+          <div class="upgrade-inner">
+            <div class="screen-head upgrade-head">
+              <div>
+                <div class="eyebrow">ВОЛНА <span id="upgradeWave">1</span> ПРОЙДЕНА</div>
+                <h2>ВЫБЕРИ УЛУЧШЕНИЕ</h2>
+              </div>
+              <div class="upgrade-meta">
+                <span class="stat-label">ЖЕТОНЫ</span>
+                <span class="upgrade-tokens" id="upgradeTokens">1</span>
+              </div>
+            </div>
+
+            <div class="cards" id="cards"></div>
+
+            <div class="upgrade-footer">
+              <div class="upgrade-actions">
+                <button class="btn btn-ghost" id="rerollBtn">ОБНОВИТЬ ЗА <span class="btn-cost">1 жетон</span></button>
+                <button class="btn btn-ghost" id="skipBtn">ПРОПУСТИТЬ <span class="btn-cost">+15 HP</span></button>
+              </div>
+              <div class="upgrade-hint">1–6 — выбрать · R — обновить · S — пропустить</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen pause-screen" id="pauseScreen">
+          <div class="pause-inner">
+            <div class="eyebrow">ПЕРЕДЫШКА</div>
+            <h2>ПАУЗА</h2>
+            <p class="pause-line" id="pauseStats">Волна 1 · база 100 HP</p>
+
+            <div class="pause-actions">
+              <button class="btn btn-primary" id="resumeBtn">ПРОДОЛЖИТЬ</button>
+              <button class="btn btn-ghost" id="pauseHelpBtn">КАК ИГРАТЬ</button>
+              <button class="btn btn-ghost" id="restartBtn">НАЧАТЬ ЗАНОВО</button>
+              <button class="btn btn-ghost" id="pauseMenuBtn">В МЕНЮ</button>
+              <button class="btn btn-ghost" id="pauseFullscreenBtn">НА ВЕСЬ ЭКРАН</button>
+            </div>
+
+            <div class="toggles">
+              <button class="toggle" id="pauseSoundBtn">ЗВУК <span>ВКЛ</span></button>
+              <button class="toggle" id="pauseShakeBtn">ТРЯСКА <span>ВКЛ</span></button>
+              <button class="toggle" id="pauseMotionBtn">АНИМАЦИИ <span>ПОЛНЫЕ</span></button>
+            </div>
+
+            <div class="pause-tip">Совет: если врагов много, вводи слово того, кто уже атакует базу. TAB поможет выбрать цель.</div>
+          </div>
+        </section>
+
+        <section class="screen end-screen" id="endScreen">
+          <div class="end-inner">
+            <div class="eyebrow" id="endEyebrow">ЗАБЕГ ЗАВЕРШЁН</div>
+            <h2 id="endTitle">ТИШИНА ПОБЕДИЛА</h2>
+            <p class="end-subtitle" id="endSubtitle">Словарь пал. Но слова ещё можно вернуть.</p>
+
+            <div class="end-stats" id="endStats"></div>
+
+            <div class="end-build-wrap">
+              <div class="stat-label">ВЗЯТЫЕ УЛУЧШЕНИЯ</div>
+              <div class="end-build" id="endBuild"></div>
+            </div>
+
+            <div class="end-actions">
+              <button class="btn btn-primary" id="againBtn">ЕЩЁ РАЗ</button>
+              <button class="btn btn-ghost" id="endMenuBtn">В МЕНЮ</button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <footer class="outside-note">
+      <span>СЛОВОБОЙ</span>
+      <span>печатай · выбирай · защищай</span>
+    </footer>
+  </div>
+
+  <script src="data.js?v=45"></script>
+  <script src="game.js?v=45"></script>
+</body>
+</html>
